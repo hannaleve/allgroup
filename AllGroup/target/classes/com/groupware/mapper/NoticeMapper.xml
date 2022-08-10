@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.groupware.mapper.NoticeMapper">
+
+	<select id="getList" resultType="com.groupware.vo.NoticeVO">
+<![CDATA[
+select * from tbl_notice where not_no > 0
+]]>
+	</select>
+
+
+
+<!-- 목록,검색조건,페이징처리 -->
+	<select id="getListWithPaging"
+		resultType="com.groupware.vo.NoticeVO">
+	<![CDATA[
+select 
+NOT_NO,USER_NAME,NOT_TITLE,NOT_CONTENT,NOT_COUNT,NOT_REGDATE,NOT_UPDATE,REPLYCNT
+from (
+select /*+INDEX_DESC(tbl_notice pk_notice) */
+rownum rn,NOT_NO,USER_NAME,NOT_TITLE,NOT_CONTENT,NOT_COUNT,NOT_REGDATE,NOT_UPDATE,REPLYCNT
+from tbl_notice
+where
+]]>
+
+<include refid="criteria"></include>
+
+<![CDATA[
+ rownum <= #{pageNum} * #{amount}
+)
+where rn > (#{pageNum} -1) * #{amount}   
+]]>
+	</select>
+	
+	
+	<!-- 검색조건 -->
+	<sql id="criteria">
+		<trim prefix="(" suffix=") AND " prefixOverrides="OR">
+			<foreach item='type' collection="typeArr">
+				<trim prefix="OR">
+					<choose>
+						<when test="type == 'T'.toString()">
+							NOT_TITLE like '%'||#{keyword}||'%'
+						</when>
+						<when test="type == 'C'.toString()">
+							NOT_CONTENT like '%'||#{keyword}||'%'
+						</when>
+						<when test="type == 'W'.toString()">
+							USER_NAME like '%'||#{keyword}||'%'
+						</when>
+					</choose>
+				</trim>
+			</foreach>
+		</trim>
+		</sql>
+
+
+
+	<select id="getTotalCount" resultType="int">
+		select count(*) from tbl_notice 
+		where
+		
+		<include refid="criteria"></include>
+		
+		 NOT_NO > 0
+	</select>
+
+
+<!-- 공지사항등록 -->
+	<insert id="insert">
+		<selectKey keyProperty="NOT_NO" order="BEFORE"
+			resultType="long">
+			select seq_notice.nextval from dual
+		</selectKey>
+
+		insert into
+		tbl_notice(NOT_NO,USER_NAME,NOT_TITLE,NOT_CONTENT)
+		values(#{NOT_NO},#{USER_NAME},#{NOT_TITLE},#{NOT_CONTENT})
+	</insert>
+
+<!-- 공지사항조회 -->
+	<select id="read" resultType="com.groupware.vo.NoticeVO">
+		select * from tbl_notice where
+		NOT_NO = #{NOT_NO}
+	</select>
+
+<!-- 공지사항삭제 -->
+	<delete id="delete">
+		delete from tbl_notice where NOT_NO = #{NOT_NO}
+	</delete>
+
+<!-- 공지사항수정 -->
+	<update id="update">
+		update tbl_notice
+		set NOT_TITLE = #{NOT_TITLE},
+		NOT_CONTENT = #{NOT_CONTENT},
+		NOT_UPDATE = sysdate
+		where NOT_NO =
+		#{NOT_NO}
+	</update>
+
+	<!-- 조회수 -->
+	<update id="updateViewCnt">
+		update tbl_notice set NOT_COUNT = NOT_COUNT + 1
+		where
+		NOT_NO = #{NOT_NO}
+	</update>
+	
+	<!-- 댓글수 1,-1-->
+	<update id="updateReplyCnt">
+	update tbl_notice set REPLYCNT = REPLYCNT + #{amount} where NOT_NO = #{NOT_NO}
+	</update>
+</mapper>

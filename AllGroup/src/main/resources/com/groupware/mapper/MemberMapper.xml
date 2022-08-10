@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.groupware.mapper.MemberMapper">
+
+	<resultMap type="com.groupware.vo.MemberVO" id="memberMap">
+		<id property="USER_ID" column="USER_ID" />
+		<result property="USER_ID" column="USER_ID" />
+		<result property="USER_SNO" column="USER_SNO" />
+		<result property="USER_PWD" column="USER_PWD" />
+		<result property="USER_NAME" column="USER_NAME" />
+		<result property="USER_RANK" column="USER_RANK" />
+		<result property="USER_EMAIL" column="USER_EMAIL" />
+		<result property="USER_PHONE" column="USER_PHONE" />
+		<result property="USER_ADDRES1" column="USER_ADDRES1" />
+		<result property="USER_ADDRES2" column="USER_ADDRES2" />
+		<result property="USER_ADDRES3" column="USER_ADDRES3" />
+		<result property="DEPT_NAME" column="DEPT_NAME" />
+		<result property="REGDATE" column="REGDATE" />
+		<result property="UPDATEDATE" column="UPDATEDATE" />
+		<collection property="authList" resultMap="authMap">
+		</collection>
+	</resultMap>
+
+	<resultMap type="com.groupware.vo.AuthVO" id="authMap">
+		<result property="USER_ID" column="USER_ID" />
+		<result property="AUTH" column="AUTH" />
+	</resultMap>
+
+	<select id="read" resultMap="memberMap">
+		select
+		mem.USER_ID,USER_SNO,USER_PWD,USER_NAME,USER_RANK,USER_EMAIL,USER_PHONE,USER_ADDRES1,
+		USER_ADDRES2,USER_ADDRES3,
+		DEPT_NAME,REGDATE,
+		UPDATEDATE,AUTH
+		from
+		tbl_member mem left outer join tbl_member_auth auth on mem.USER_ID =
+		auth.USER_ID
+		where mem.USER_ID = #{USER_ID}
+	</select>
+	
+	
+	 <!-- 아이디 중복체크  -->
+	<select id="checkId" parameterType="String" resultType="int">
+	select count(*) from tbl_member where USER_ID = #{USER_ID}
+	</select>
+	
+	<!-- 이메일 중복체크 -->
+	<select id="emailCheck" parameterType="String" resultType="int">
+	select count(*) from tbl_member where USER_EMAIL = #{USER_EMAIL}
+	</select>
+	
+	<!-- 회원가입 -->
+	<insert id="insert" parameterType="com.groupware.vo.MemberVO">
+	insert into tbl_member 
+	(USER_ID,USER_SNO,USER_PWD,USER_NAME,USER_RANK,USER_EMAIL,USER_PHONE,USER_ADDRES1,
+	USER_ADDRES2,USER_ADDRES3,DEPT_NAME)
+	values (#{USER_ID},#{USER_SNO},#{USER_PWD},#{USER_NAME},#{USER_RANK},#{USER_EMAIL},
+	#{USER_PHONE},#{USER_ADDRES1},#{USER_ADDRES2},#{USER_ADDRES3},#{DEPT_NAME})
+	</insert>
+	
+	<!-- 회원가입 시 회원권한등록 -->
+	<insert id="insertRole" parameterType="String">
+	insert into tbl_member_auth(USER_ID, AUTH)
+    values (#{USER_ID}, 'ROLE_MEMBER')
+	</insert>
+
+	<!-- 로그인한 사용자가 DB등록사용자인지 체크하기위함 - 비번암호화시 사용 -->
+	<select id="loginUser" parameterType="com.groupware.vo.MemberVO">
+	select * from tbl_member where USER_ID = #{USER_ID}
+	</select>
+	
+	<!--회원의 부서명코드 확인용 -->
+	<select id="deptChecks" parameterType="String" resultType="String">
+	select DEPT_CODE from tbl_dept where DEPT_NAME = #{DEPT_NAME}
+	</select>
+</mapper>

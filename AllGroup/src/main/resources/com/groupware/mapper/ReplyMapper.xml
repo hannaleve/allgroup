@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.groupware.mapper.ReplyMapper">
+
+	<!-- 댓글등록 -->
+	<insert id="insert" parameterType="com.groupware.vo.ReplyVO">
+
+		insert into tbl_reply (RNO,NOT_NO,REPLY,REPLYER)
+		values(seq_reply.nextval, #{NOT_NO}, #{REPLY}, #{REPLYER})
+
+	</insert>
+
+
+	<!-- 댓글읽기(조회) -->
+	<select id="read" resultType="com.groupware.vo.ReplyVO">
+		select * from tbl_reply where RNO = #{RNO}
+	</select>
+
+	<!-- 댓글삭제 -->
+	<delete id="delete">
+		delete from tbl_reply where RNO = #{RNO}
+	</delete>
+
+	<!-- 댓글수정 -->
+	<update id="update">
+		update tbl_reply set REPLY = #{REPLY}, UPDATEDATE = sysdate
+		where RNO = #{RNO}
+	</update>
+
+<!-- 댓글목록,댓글페이징처리 -->
+	<select id="getListWithPaging" resultType="com.groupware.vo.ReplyVO">
+
+  <![CDATA[
+ select RNO,NOT_NO,REPLY,REPLYER, REPLYDATE, UPDATEDATE
+ from 
+   (
+    select /*+INDEX(tbl_reply idx_reply) */ 
+      rownum rn,  RNO, NOT_NO, REPLY, REPLYER, REPLYDATE, UPDATEDATE
+    from tbl_reply
+    where NOT_NO = #{NOT_NO}
+    and RNO > 0
+    and rownum <= #{criteria.pageNum} * #{criteria.amount}
+   ) where rn > (#{criteria.pageNum} -1) * #{criteria.amount}
+]]>
+
+	</select>
+	
+	<!-- 댓글수 -->
+	<select id="getCountByNOT_NO" resultType="int">
+	<![CDATA[
+	select count(RNO) from tbl_reply where NOT_NO = #{NOT_NO}
+	]]>
+	</select>
+</mapper>
