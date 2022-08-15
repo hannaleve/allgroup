@@ -10,6 +10,8 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -31,9 +33,10 @@ import lombok.extern.log4j.Log4j;
 
 @Controller
 @Log4j
+@PropertySource(value = {"classpath:/application.properties"})
 public class SmartEditorController {
-
-	private String uploadPath = "C:\\upload";
+	@Value("${file.path}")
+	private String uploadPath;
 	
 	
 	//naver smarteditor위한 컨트롤러

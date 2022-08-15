@@ -29,11 +29,13 @@ import lombok.AllArgsConstructor;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j;
 
-@Controller
+
 @Log4j
-@AllArgsConstructor
+//@AllArgsConstructor
+@Controller
 public class LoginController {
 
+	@Setter(onMethod=@__({@Autowired}))
 	private MemberService memberservice;
 	
 	@Setter(onMethod=@__({@Autowired}))
@@ -82,7 +84,7 @@ public class LoginController {
 		if(request.getSession() != null) {
 			log.info("로그아웃실패");
 		}else {
-			log.info("로그아웃성공");
+			log.info("로그아웃성공"); //세션무효화
 		}
 		return "redirect:/customLogin";
 	}

@@ -67,10 +67,14 @@ select::-ms-expand { /* for IE 11 */
 
 <div class="member__modify">
 	<div id="member__modify__form">
+
+
 		<form role="form" action="/member/joinForm" method="post"
 			name="subForm" id="subForm">
+
 			<input type="hidden" name="${_csrf.parameterName}"
 				value="${_csrf.token}" />
+
 			<table class="insertTable">
 				<tr>
 					<td colspan="2">
@@ -228,270 +232,294 @@ select::-ms-expand { /* for IE 11 */
 				<button class="btn" id="reg_submit" type="submit">가입하기</button>
 			</div>
 		</form>
+
+
+
 	</div>
 </div>
 
 
 <script>
+	///---------유효성 검사(정규식체크)----------------
 
+	//모든 공백 체크 정규식
+	var empJ = /\s/g;
+	//아이디 정규식
+	var idJ = /^[a-z0-9]{4,12}$/;
+	// 비밀번호 정규식
+	var pwJ = /^[A-Za-z0-9]{4,12}$/;
+	// 이름 정규식
+	var nameJ = /^[가-힣]{2,6}$/;
+	// 이메일 검사 정규식
+	var mailJ = /^[0-9a-zA-Z]([-_.]?[0-9a-zA-Z])*@[0-9a-zA-Z]([-_.]?[0-9a-zA-Z])*.[a-zA-Z]{2,3}$/i;
+	// 휴대폰 번호 정규식
+	var phoneJ = /^01([0|1|6|7|8|9]?)?([0-9]{3,4})?([0-9]{4})$/;
 
-
-///---------유효성 검사(정규식체크)----------------
-
-
-//모든 공백 체크 정규식
-var empJ = /\s/g;
-//아이디 정규식
-var idJ = /^[a-z0-9]{4,12}$/;
-// 비밀번호 정규식
-var pwJ = /^[A-Za-z0-9]{4,12}$/; 
-// 이름 정규식
-var nameJ = /^[가-힣]{2,6}$/;
-// 이메일 검사 정규식
-var mailJ = /^[0-9a-zA-Z]([-_.]?[0-9a-zA-Z])*@[0-9a-zA-Z]([-_.]?[0-9a-zA-Z])*.[a-zA-Z]{2,3}$/i;
-// 휴대폰 번호 정규식
-var phoneJ = /^01([0|1|6|7|8|9]?)?([0-9]{3,4})?([0-9]{4})$/;
-
-
-
-/// [값 입력 시 유효성검사를 실시]
-
-     //1. 아이디 유효성검사(1 = 중복  /  0 != 중복)
-$(document).ready(function() {
-
-      $("#user_id").blur(function() { //아이디 입력하고 포커스 떠났을 시 
-
-		var user_id = $('#user_id').val();
-		$.ajax({
-			url : '/member/idCheck?userId='+ user_id, //userId - @RequestParam value
-			type : 'get',
-			beforeSend : function(xhr){
-				xhr.setRequestHeader( "${_csrf.headerName}", "${_csrf.token}" );
-			},
-			success : function(data) {
-				console.log("1 = 중복o / 0 = 중복x : "+ data);							
-				
-				if (data == 1) { //아이디가 중복됐을 시 
-						// 1 : 아이디가 중복되는 문구
-						$("#id_check").text("사용중인 아이디입니다");
-						$("#id_check").css("color", "red");
-						$("#reg_submit").attr("disabled", true);
-					} else { //아이디가 중복되지 않았을 시 
-						
-						if(idJ.test(user_id)){ //test() 함수안에 들어가는 값은 user_id의 값 으로 아이디 정규식 체크 
-							// 0 : 아이디 길이 / 문자열 검사
-							$("#id_check").text("");
-							$("#reg_submit").attr("disabled", false);
-				
-						} else if(user_id == ""){ //정규식 맞지 않는경우 -  아이디 값이 없을 시
-							
-							$('#id_check').text('아이디를 입력해주세요 :)');
-							$('#id_check').css('color', 'red');
-							$("#reg_submit").attr("disabled", true);				
-							
-						} else {  //정규식 맞지 않는경우 
-							
-							$('#id_check').text("아이디는 소문자와 숫자 4~12자리만 가능합니다.");
-							$('#id_check').css('color', 'red');
-							$("#reg_submit").attr("disabled", true);
-						}
-						
-					}
-				}, error : function() {
-						console.log("실패");
-				}
-		
-			}); //ajax
-      
-		}); //blur
-		
-
+	/*
 	
-			
-			/// [가입하기 실행 버튼 유효성 검사를 실시]
-			$('form').on('submit',function(){
+	 1. 값 입력 시 유효성검사 실시 (입력 후 포커스 떠났을 시 + 유효성검사 + 정규식 검사)
+	   1.1 아이디 입력하고 포커스 떠났을 시 + 아이디 유효성검사 (1 = 중복  /  0 != 중복) 
+	   1.2 비밀번호 입력하고 포커스 떠났을 시 + 유효성 검사 + 정규식 검사 
+	   1.3 패스워드 일치 확인 (유효성검사)
+	   1.4 이름에 특수문자 들어가지 않도록 설정 (이름 입력하고 포커스 떠났을 시 + 유효성 검사 + 정규식 검사 )
+	   1.5 직급선택
+	   1.6 부서명선택
+	   1.7 휴대전화 입력하고 포커스 떠났을 시 + 유효성 검사 + 정규식 검사
+	 2. 가입하기 실행 버튼 클릭 시 유효성 검사를 실시
+	   2.1 비밀번호가 같은 경우 && 비밀번호 정규식
+	   2.2 이름 정규식
+	   2.3 이메일 정규식
+	   2.4 휴대폰번호 정규식
+	
+	 */
 
-			var inval_Arr = new Array(4).fill(false);
+	         $(document).ready(function() {
 
-				// 비밀번호가 같은 경우 && 비밀번호 정규식
-				if (($('#user_pw').val() == ($('#user_pw2').val()))
-						&& pwJ.test($('#user_pw').val())) {
-					inval_Arr[0] = true;
-				} else {
-					inval_Arr[0] = false;
-				}
-				// 이름 정규식
-				if (nameJ.test($('#user_name').val())) {
-					inval_Arr[1] = true;	
-				} else {
-					inval_Arr[1] = false;
-				}
-				// 이메일 정규식
-				if (mailJ.test($('#user_email').val())){
-					console.log(mailJ.test($('#user_email').val()));
-					inval_Arr[2] = true;
-				} else {
-					inval_Arr[2] = false;
-				}
-				// 휴대폰번호 정규식
-				if (phoneJ.test($('#user_phone').val())) {
-					console.log(phoneJ.test($('#user_phone').val()));
-					inval_Arr[3] = true;
-				} else {
-					inval_Arr[3] = false;
-				}
-				
-				
-				var validAll = true;
-				
-				for(var i = 0; i < inval_Arr.length; i++){
-					
-					if(inval_Arr[i] == false){
-						validAll = false;
-					}
-				}
-				
-				if(validAll){ // 유효성 모두 통과
-					alert('회원가입을 축하합니다!');
-					
-				} else{
-					alert('입력한 정보들을 다시 한번 확인해주세요 :)')
-					
-				}
-			});
-			
+// 1. 값 입력 시 유효성검사 실시 (입력 후 포커스 떠났을 시 + 유효성검사 + 정규식 검사)
 
-			//2. 비밀번호 유효성 검사
-			$("#user_pw").blur(function() {
-				if (pwJ.test($('#user_pw').val())) {
-						console.log('true');
-						$("#pw_check").text('');
-				} else {
-					console.log('false');
-					$('#pw_check').text('숫자 or 문자로만 4~12자리 입력');
-					$('#pw_check').css('color', 'red');
-				}
-			});
-			
-			//3. 패스워드 일치 확인 
-			$("#user_pw2").blur(function() {
-				if ($('#user_pw').val() != $(this).val()) { //user_pw 값과 현재 입력한 값이 다르다면 
-					$('#pw2_check').text('비밀번호가 일치하지 않습니다.');
-					$('#pw2_check').css('color', 'red');
-				} else {
-					$("#pw2_check").text('');
-				}
-			});
-			
-			//4. 이름에 특수문자 들어가지 않도록 설정
-			$("#user_name").blur(function() {
-				if (nameJ.test($(this).val())) {
-						console.log(nameJ.test($(this).val()));
-						$("#name_check").text('');
-				} else {
-					$('#name_check').text('이름을 확인해주세요');
-					$('#name_check').css('color', 'red');
-				}
-			});
-			
-			
-			
-			//직급선택
-			$('#USER_RANK').blur(function(){
+						// 1.1 아이디 입력하고 포커스 떠났을 시 + 아이디 유효성검사 (1 = 중복  /  0 != 중복) 
+						$("#user_id")
+								.blur(
+										function() {
 
-				user_rank = $("#USER_RANK option:selected").val();
-				  //console.log($("select[name=selectCheck1]").val())
-				  console.log(user_rank)
-			});
-			
-			//부서명선택
-			$('#DEPT_NAME').blur(function(){
-				dept_name = $("#DEPT_NAME option:selected").val();
-				  //console.log($("select[name=selectCheck2]").val())
-				  console.log(dept_name)
-			});
-			
-			
-			
-			//5. 휴대전화
-			$('#user_phone').blur(function(){
-				if(phoneJ.test($(this).val())){
-					console.log(nameJ.test($(this).val()));
-					$("#phone_check").text('');
-				} else {
-					$('#phone_check').text('휴대폰번호를 확인해주세요 :)');
-					$('#phone_check').css('color', 'red');
-				}
-			});
-});
+											var user_id = $('#user_id').val();
+											$.ajax({
+														url : '/member/idCheck?userId='+ user_id, //userId - @RequestParam value
+														type : 'get',
+														beforeSend : function(xhr) {
+															xhr.setRequestHeader("${_csrf.headerName}","${_csrf.token}");
+														},
+														success : function(data) {
+															console.log("1 = 중복o / 0 = 중복x : "+ data);
 
-			
-			var flag_dupl_mail = false;
-			var flag_dupl_use_mail = false;
-			
-			
-			// 이메일 중복검사(1 = 중복  /  0 != 중복)
-			 $("#user_email").blur(function() { //이메일 입력하고 포커스 떠났을 시 
-					var user_email = $('#user_email').val();
+															if (data == 1) { //아이디가 중복됐을 시 
+																// 1 : 아이디가 중복되는 문구
+																$("#id_check").text("사용중인 아이디입니다");
+																$("#id_check").css("color","red");
+																$("#reg_submit").attr("disabled",true);
+															} else { //아이디가 중복되지 않았을 시 
 
-					$.ajax({
-						url : '/member/emailCheck?user_email='+ user_email, //user_email - @RequestParam value
-						type : 'get',
-						beforeSend : function(xhr){
-							xhr.setRequestHeader( "${_csrf.headerName}", "${_csrf.token}" );
-						},
-						success : function(data) {
-							console.log("1 = 중복o / 0 = 중복x : "+ data);							
-						
-							if (data == 1) { //이메일이 중복됐을 시 
-									console.log("이메일중복!!");
-									flag_dupl_use_mail = false;
-								} else { //아이디가 중복되지 않았을 시 
-									console.log("가입가능~~");
-									flag_dupl_use_mail = true;
-								
-								}
-							}, error : function() {
-									console.log("에러발생.. 이메일체크");
+																if (idJ.test(user_id)) { //test() 함수안에 들어가는 값은 user_id의 값 으로 아이디 정규식 체크 
+																	// 0 : 아이디 길이 / 문자열 검사
+																	$("#id_check").text("");
+																	$("#reg_submit").attr("disabled",false);
+
+																} else if (user_id == "") { //정규식 맞지 않는경우 -  아이디 값이 없을 시
+
+																	$('#id_check').text('아이디를 입력해주세요 :)');
+																	$('#id_check').css('color','red');
+																	$("#reg_submit").attr("disabled",true);
+
+																} else { //정규식 맞지 않는경우 
+
+																	$('#id_check').text("아이디는 소문자와 숫자 4~12자리만 가능합니다.");
+																	$('#id_check').css('color','red');
+																	$("#reg_submit").attr("disabled",true);
+																}
+															}
+														},
+														error : function() {
+															console.log("실패");
+														}
+
+													}); //ajax
+
+										}); //blur
+
+						// 1.2 비밀번호 입력하고 포커스 떠났을 시 + 유효성 검사 + 정규식 검사 
+						$("#user_pw").blur(function() {
+							if (pwJ.test($('#user_pw').val())) {
+								console.log('true');
+								$("#pw_check").text('');
+							} else {
+								console.log('false');
+								$('#pw_check').text('숫자 or 문자로만 4~12자리 입력');
+								$('#pw_check').css('color', 'red');
 							}
 						});
+
+						// 1.3 패스워드 일치 확인 (유효성검사)
+						$("#user_pw2").blur(function() {
+							if ($('#user_pw').val() != $(this).val()) { //user_pw 값과 현재 입력한 값이 다르다면 
+								$('#pw2_check').text('비밀번호가 일치하지 않습니다.');
+								$('#pw2_check').css('color', 'red');
+							} else {
+								$("#pw2_check").text('');
+							}
+						});
+
+						// 1.4 이름에 특수문자 들어가지 않도록 설정 (이름 입력하고 포커스 떠났을 시 + 유효성 검사 + 정규식 검사 )
+						$("#user_name").blur(function() {
+							if (nameJ.test($(this).val())) {
+								console.log(nameJ.test($(this).val()));
+								$("#name_check").text('');
+							} else {
+								$('#name_check').text('이름을 확인해주세요');
+								$('#name_check').css('color', 'red');
+							}
+						});
+
+						// 1.5 직급선택
+						$('#USER_RANK').blur(function() {
+
+							user_rank = $("#USER_RANK option:selected").val();
+							//console.log($("select[name=selectCheck1]").val())
+							console.log(user_rank)
+						});
+
+						// 1.6 부서명선택
+						$('#DEPT_NAME').blur(function() {
+							dept_name = $("#DEPT_NAME option:selected").val();
+							//console.log($("select[name=selectCheck2]").val())
+							console.log(dept_name)
+						});
+
+						// 1.7  휴대전화 입력하고 포커스 떠났을 시 + 유효성 검사 + 정규식 검사
+						$('#user_phone').blur(function() {
+							if (phoneJ.test($(this).val())) {
+								console.log(nameJ.test($(this).val()));
+								$("#phone_check").text('');
+							} else {
+								$('#phone_check').text('휴대폰번호를 확인해주세요 :)');
+								$('#phone_check').css('color', 'red');
+							}
+						});
+						
+
+// 2. 가입하기 실행 버튼 클릭 시 유효성 검사를 실시
+
+						$('form').on('submit',
+								function() {
+
+									var inval_Arr = new Array(4).fill(false);
+
+									// 2.1 비밀번호가 같은 경우 && 비밀번호 정규식
+									if (($('#user_pw').val() == ($('#user_pw2')
+											.val()))
+											&& pwJ.test($('#user_pw').val())) {
+										inval_Arr[0] = true;
+									} else {
+										inval_Arr[0] = false;
+									}
+									// 2.2 이름 정규식
+									if (nameJ.test($('#user_name').val())) {
+										inval_Arr[1] = true;
+									} else {
+										inval_Arr[1] = false;
+									}
+									// 2.3 이메일 정규식
+									if (mailJ.test($('#user_email').val())) {
+										console.log(mailJ.test($('#user_email')
+												.val()));
+										inval_Arr[2] = true;
+									} else {
+										inval_Arr[2] = false;
+									}
+									// 2.4 휴대폰번호 정규식
+									if (phoneJ.test($('#user_phone').val())) {
+										console.log(phoneJ
+												.test($('#user_phone').val()));
+										inval_Arr[3] = true;
+									} else {
+										inval_Arr[3] = false;
+									}
+
+									var validAll = true;
+
+									for (var i = 0; i < inval_Arr.length; i++) {
+
+										if (inval_Arr[i] == false) {
+											validAll = false;
+										}
+									}
+
+									if (validAll) { // 유효성 모두 통과 했을 시 
+										alert('회원가입을 축하합니다!');
+
+									} else {
+										alert('입력한 정보들을 다시 한번 확인해주세요 :)')
+
+									}
+								});
+
+					});
 					
-			 });
+
+	/* 
+
+	 1. 이메일 입력하고 포커스 떠났을 시 + 이메일 중복검사(1 = 중복  /  0 != 중복)
+	 2. 이메일 전송 메일 보내기
+	 3. 인증코드 확인하기
+	
+	 */
+
+	 
+	var flag_dupl_mail = false;
+	var flag_dupl_use_mail = false;
+
+	
+// 1. 이메일 입력하고 포커스 떠났을 시 + 이메일 중복검사(1 = 중복  /  0 != 중복)
+	$("#user_email").blur(function() {
+		var user_email = $('#user_email').val();
+
+		$.ajax({
+			url : '/member/emailCheck?user_email=' + user_email, //user_email - @RequestParam value
+			type : 'get',
+			beforeSend : function(xhr) {
+				xhr.setRequestHeader("${_csrf.headerName}", "${_csrf.token}");
+			},
+			success : function(data) {
+				console.log("1 = 중복o / 0 = 중복x : " + data);
+
+				if (data == 1) { //이메일이 중복됐을 시 
+					console.log("이메일중복!!");
+					flag_dupl_use_mail = false;
+				} else { //아이디가 중복되지 않았을 시 
+					console.log("가입가능~~");
+					flag_dupl_use_mail = true;
+
+				}
+			},
+			error : function() {
+				console.log("에러발생.. 이메일체크");
+			}
+		});
+
+	});
 
 
-//이메일전송메일보내기
+// 2. 이메일 전송 메일 보내기
+	var resultCode = null; //인증코드키
 
-var resultCode = null; //인증코드키
+	function fn_sendEmail_Ajax() { 
+		var user_email = $('#user_email').val(); //인증번호전송 버튼 클릭 시 발생하는 함수 
+		console.log("제발 :" + user_email)
 
-	 function fn_sendEmail_Ajax() { //인증번호전송 버튼 클릭 시 발생하는 함수 
-	 var user_email = $('#user_email').val();
-	 console.log("제발 :" + user_email)
-
- 		// 메일이 입력 안되면 튕기기
+		// 메일이 입력 안되면 튕기기
 		if (user_email == "" || user_email == null) {
 			flag_dupl_mail = false;
 			alert("이메일 주소를 입력해주세요.")
-		
+
 			return;
-		} 
- 		if(flag_dupl_use_mail == false){
+		}
+		if (flag_dupl_use_mail == false) {
 			flag_dupl_mail = false;
 			alert("이미 가입된 이메일입니다.")
 			return;
-		} 
+		}
 
 		var form = {
 			email : user_email
 
-		}  
+		}
 
- 		$.ajax({
+		$.ajax({
 			url : "/member/email",
 			data : JSON.stringify(form),
 			dataType : "JSON",
 			type : "post",
-			contentType: "application/json; charset=UTF-8",
-			
+			contentType : "application/json; charset=UTF-8",
+
 			success : function(data) {
 				alert("입력하신 이메일 주소에서 발급된 코드를 확인하세요.");
 
@@ -501,35 +529,36 @@ var resultCode = null; //인증코드키
 				$("#email_confirm").show(); //인증번호입력부분 입력할 수 있도록 
 
 			},
-			 beforeSend: function(xhr) {
-				 xhr.setRequestHeader("${_csrf.headerName}","${_csrf.token}");
-           },
+			beforeSend : function(xhr) {
+				xhr.setRequestHeader("${_csrf.headerName}", "${_csrf.token}");
+			},
 			error : function() {
 				alert("네트워크가 불안정합니다. 다시 시도해 주세요.");
 			}
 		});
 
-	 }
+	}
+	
 
+// 3. 인증코드확인하기
+	function fn_checkCode() { //인증번호 확인버튼을 눌렀을 때
+		if ($('#email_confirm').val() != resultCode) { //인증코드가 일치하지 않다면
+			alert("인증번호가 일치하지 않습니다.")
+			$("#reg_submit").attr("disabled", true); //가입하기 버튼 누르지 못하도록 
+		} else {
+			$("#mail_btn2").css({
+				"background-color" : "white",
+				"border" : "white"
+			});
+			const s = document.getElementById('mail_btn2');
+			s.innerText = 완료
 
-//인증코드확인하기
-	 function fn_checkCode(){ //인증번호 확인버튼을 눌렀을 때
-			if ($('#email_confirm').val() != resultCode) { //인증코드가 일치하지 않다면
-				alert("인증번호가 일치하지 않습니다.")
-				$("#reg_submit").attr("disabled", true); //가입하기 버튼 누르지 못하도록 
-			} else {
-				$("#mail_btn2").css({ 
-					"background-color": "white",
-					"border": "white"
-				});
-				const s = document.getElementById('mail_btn2');
-			    s.innerText = 완료
-				
-			}
-	 }
+		}
+	}
+	
+	
 
-
-	// kakao 주소찾기 api
+// kakao 주소찾기 api
 	function sample6_execDaumPostcode() {
 		new daum.Postcode(
 				{
@@ -581,11 +610,6 @@ var resultCode = null; //인증코드키
 					}
 				}).open();
 	}
-	
-
-
-
-
 </script>
 
 <%@include file="../includes/footer.jsp"%>

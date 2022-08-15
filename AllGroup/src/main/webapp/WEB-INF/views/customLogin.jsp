@@ -187,6 +187,12 @@
 
 
 					<form action="/login" method="POST" class="login-form">
+
+						<!-- csrf 토큰을 생성해 같이 보낸다 -->
+						<input type="hidden" name="${_csrf.parameterName}"
+							value="${_csrf.token}" />
+
+
 						<fieldset>
 							<div class="form-group">
 								<label for="exampleInputEmail1" class="text-uppercase">ID</label>
@@ -205,25 +211,32 @@
 								</label>
 							</div>
 
-							<a href="index.html" class="btn btn-lg btn-success btn-block">Login</a>
+							<button type="submit" class="btn btn-lg btn-success btn-block">Login</button>
 
-							<br />
-
-							<div style="text-align: center;">
-								<button type="submit" class="btn btn-default"
-									style="background-color: transparent; boarder: 0; outline: 0;">아이디/비번찾기</button>
-									<button type="submit" class="btn btn-default"
-									style="background-color: transparent; boarder: 0; outline: 0;">이메일로찾기</button>
-								<button type="submit" class="btn btn-default" onclick="location.href='/member/joinForm'"
-									style="background-color: transparent; boarder: 0; outline: 0;">회원가입</button>
-							</div>
 						</fieldset>
-						<input type="hidden" name="${_csrf.parameterName}"
-							value="${_csrf.token}" />
 					</form>
 
 
+
+					<br />
+					
+					
+					
+
+					<div style="text-align: center;">
+						<button type="submit" class="btn btn-default"
+							style="background-color: transparent; boarder: 0; outline: 0;">아이디/비번찾기</button>
+						<button type="submit" class="btn btn-default"
+							style="background-color: transparent; boarder: 0; outline: 0;">이메일로찾기</button>
+						<button type="submit" class="btn btn-default"
+							onclick="location.href='/member/joinForm'"
+							style="background-color: transparent; boarder: 0; outline: 0;">회원가입</button>
+					</div>
+
+
 				</div>
+			</div>
+		</div>
 	</section>
 
 

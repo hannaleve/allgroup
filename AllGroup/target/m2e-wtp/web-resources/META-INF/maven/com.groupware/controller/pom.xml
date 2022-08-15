@@ -9,7 +9,7 @@
 	<packaging>war</packaging>
 	<version>1.0.0-BUILD-SNAPSHOT</version>
 	<properties>
-		<java-version>1.8</java-version>
+		<java-version>11.0.12</java-version>
 		<org.springframework-version>5.2.8.RELEASE</org.springframework-version>
 		<org.aspectj-version>1.9.0</org.aspectj-version>
 		<org.slf4j-version>1.7.25</org.slf4j-version>
@@ -72,10 +72,8 @@
 			<artifactId>log4j</artifactId>
 			<version>1.2.17</version>
 			<exclusions>
-				<!-- <exclusion>
-					<groupId>javax.mail</groupId>
-					<artifactId>mail</artifactId>
-				</exclusion> -->
+				<!-- <exclusion> <groupId>javax.mail</groupId> <artifactId>mail</artifactId> 
+					</exclusion> -->
 				<exclusion>
 					<groupId>javax.jms</groupId>
 					<artifactId>jms</artifactId>
@@ -251,10 +249,15 @@
 
 		<!-- 이메일인증 -->
 		<!-- https://mvnrepository.com/artifact/javax.mail/mail -->
+		<!-- <dependency> <groupId>javax.mail</groupId> <artifactId>mail</artifactId> 
+			<version>1.4.7</version> </dependency> <dependency> <groupId>org.springframework</groupId> 
+			<artifactId>spring-context-support</artifactId> <version>${org.springframework-version}</version> 
+			</dependency> -->
+
 		<dependency>
-			<groupId>javax.mail</groupId>
-			<artifactId>mail</artifactId>
-			<version>1.4.7</version>
+			<groupId>com.sun.mail</groupId>
+			<artifactId>javax.mail</artifactId>
+			<version>1.6.2</version>
 		</dependency>
 
 		<dependency>
@@ -262,6 +265,8 @@
 			<artifactId>spring-context-support</artifactId>
 			<version>${org.springframework-version}</version>
 		</dependency>
+
+
 
 
 

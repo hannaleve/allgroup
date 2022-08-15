@@ -16,6 +16,7 @@ import com.groupware.vo.NoticeVO;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j;
 
+
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("file:src/main/webapp/WEB-INF/spring/root-context.xml")
 @Log4j
@@ -28,6 +29,7 @@ public class NoticeMapperTest {
 	@Test
 	public void testGetList() { //목록테스트
 		mapper.getList().forEach(notice -> log.info(notice));
+		//mapper.getList().forEach(notice -> System.out.println(notice));
 	}
 
 	@Ignore

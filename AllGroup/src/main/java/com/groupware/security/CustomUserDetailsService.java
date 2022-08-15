@@ -1,6 +1,7 @@
 package com.groupware.security;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Autowired
+;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -9,7 +10,6 @@ import com.groupware.mapper.MemberMapper;
 import com.groupware.security.vo.CustomUser;
 import com.groupware.vo.MemberVO;
 
-import jdk.internal.org.jline.utils.Log;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j;
 
@@ -21,7 +21,7 @@ public class CustomUserDetailsService implements UserDetailsService{
 	
 	
 	@Override
-	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException { //DB에서 유저정보 읽어와서 리턴
 		
 		log.warn("Load User By UserName : " + username);
 		

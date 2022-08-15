@@ -1,4 +1,4 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8"
+ <%@ page language="java" contentType="text/html; charset=UTF-8"
 	pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
@@ -210,15 +210,21 @@
 <script type="text/javascript" src="/resources/js/reply.js"></script>
 
 <script>
-	//버튼(수정,목록)
+	/*
+	[게시글 버튼] 
+	1.1. 수정
+	1.2   목록
+	*/
 	$(document).ready(function() {
 
 		var operation = $("#operForm");
 
+		// 1.1 수정 버튼 클릭 시 (로그인한 사용자와 게시글 작성자가 동일한 경우에만 버튼 활성화 )
 		$("button[data-oper='modify']").on("click", function() { //수정버튼을 눌렀을 경우 NOT_NO값을 같이 전달하여 저장 submit
 			operForm.attr("action", "/notice/modify").submit();
 		});
 
+		// 1.2 목록 버튼 클릭 시
 		$("button[data-oper='list']").on("click", function() { //만일 사용자가 list로 이동하는 경우 아직 아무런 데이터가 필요하지 않으므로 NOT_NO값을 form태그안에서 지우고 submit통해서 list페이지롱 이동
 			operForm.attr("#NOT_NO").remove();
 			operForm.attr("action", "/notice/list").submit();
@@ -227,7 +233,21 @@
 </script>
 
 <script>
-	//댓글처리
+	/*
+    [댓글처리]
+	1.1 댓글 목록
+	1.2 댓글 페이징 처리
+	2.1 댓글 추가 모달(변수로 빼두기)
+	2.2 게시글 내의 댓글 추가 버튼 
+	2.3 댓글 조회 
+	3.1 모달에서 보이는 ui
+	 3.1.1 댓글 닫기 버튼 시
+	 3.1.2 댓글 등록 버튼 시
+	 3.1.3 댓글 수정 버튼 시
+	 3.1.4 댓글 삭제 버튼 시
+	*/
+	
+	
 	var NOT_NO = '<c:out value="${notice.NOT_NO}"/>';
 	console.log("게시물번호좀나와라 : " + NOT_NO); //게시물번호
 
@@ -235,11 +255,14 @@
 
 	showList(1); //자동으로 호출 
 
+	
+	
+// 1.1 댓글 목록 
 	function showList(page) { //UI 화면 상 댓글목록보여주는 부분
 		console.log("show list " + page);
 
 		replyService
-				.getList(
+				.getList( //댓글목록호출(reply.js)
 						{
 							NOT_NO : NOT_NO,
 							page : page || 1
@@ -270,20 +293,22 @@
 										+ list[i].replyer + "</strong>";
 								str += "    <small class='pull-right text-muted'>"
 										+ replyService
-												.displayTime(list[i].replydate)
+												.displayTime(list[i].replydate) /* 날짜포맷(reply.js)*/
 										+ "</small></div>";
 								str += "    <p>" + list[i].reply
 										+ "</p></div></li>";
 							}
-							replyUL.html(str);
+							replyUL.html(str); //댓글내용 화면에 뿌려줌
 
-							showReplyPage(replyCnt);
+							showReplyPage(replyCnt); //댓글 페이징 처리 호출 
 
 						});//end function
 
 	}//end showList
 
-	//댓글페이징처리
+	
+	
+// 1.2 댓글 페이징 처리
 	var pageNum = 1;
 	var replyPageFooter = $(".panel-footer");
 
@@ -327,10 +352,10 @@
 
 		console.log(str);
 
-		replyPageFooter.html(str);
+		replyPageFooter.html(str); //댓글 페이징처리 화면에 뿌려줌 
 	}
 
-	replyPageFooter.on("click", "li a", function(e) {
+	replyPageFooter.on("click", "li a", function(e) { 
 		e.preventDefault();
 		console.log("page click");
 
@@ -338,12 +363,14 @@
 
 		console.log("targetPageNum: " + targetPageNum);
 
-		pageNum = targetPageNum; //클릭한 페이지번호로 변경
+		pageNum = targetPageNum; //클릭한 페이지번호로 변경(이동)
 
 		showList(pageNum); //목록보여줌
 	});
 
-	//댓글추가모달(변수로 빼두기)
+	
+	
+// 2.1 댓글 추가 모달(변수로 빼두기)
 	var modal = $(".modal");
 	var modalInputReply = modal.find("input[name='REPLY']");
 	var modalInputReplyer = modal.find("input[name='REPLYER']")
@@ -368,6 +395,7 @@
 	
 	
 
+// 2.2 게시글 내의 댓글 추가 버튼 
 	$("#addReplyBtn").on("click", function(e) { //댓글추가버튼
 
 		modal.find("input").val("");
@@ -375,7 +403,7 @@
 		modalInputReplyDate.closest("div").hide();
 		modal.find("button[id !='modalCloseBtn']").hide();
 
-		modalRegisterBtn.show();
+		modalRegisterBtn.show(); //댓글 등록 함수 호출 
 
 		$(".modal").modal("show"); //모달보여줌
 
@@ -387,6 +415,7 @@
       }); 
 
 	
+// 2.3 댓글 조회 
 	//댓글클릭 시 ->  조회  이벤트 처리 (댓글눌렀을 경우 모달로 댓글내용보여준다.)
 	$(".chat").on(
 			"click",
@@ -397,35 +426,38 @@
 
 				console.log(rno);
 
-				replyService.get(rno, function(reply) {
+				replyService.get(rno, function(reply) { //댓글 조회(reply.js)
 
 					console.log(reply)
 
 					modalInputReply.val(reply.reply);
 					modalInputReplyer.val(reply.replyer);
 					modalInputReplyDate.val(
-							replyService.displayTime(reply.replydate)).attr(
+							replyService.displayTime(reply.replydate)).attr( /*날짜 포맷*/
 							"readonly", "readonly"); //바꿀 수 없도록 readonly
 					modal.data("rno", reply.rno);
 
 					modal.find("button[id !='modalCloseBtn']").hide();
-					modalModBtn.show();
-					modalRemoveBtn.show();
+					modalModBtn.show(); //댓글 수정 함수 호출
+					modalRemoveBtn.show(); //댓글 삭제 함수 호출 
 
 					$(".modal").modal("show");
 
 				});
 			});
 
-	//******모달에서 보이는 UI*****
+	
+	
+	
+// 3.1 모달에서 보이는 ui
 
-	//댓글 닫기 버튼 시
+	// 3.1.1 댓글 닫기 버튼 시
 	$("#modalCloseBtn").on("click", function(e) { //댓글닫기
 
 		modal.modal('hide');
 	});
 
-	//댓글 등록 버튼 클릭 시
+	// 3.1.2 댓글 등록 버튼 클릭 시
 	modalRegisterBtn.on("click", function(e) { //댓글등록
 		e.preventDefault();
 
@@ -436,7 +468,7 @@
 			"replyer" : modalInputReplyer.val()
 		};
 
-		replyService.add(replyObj, function(result) { //댓글추가함수
+		replyService.add(replyObj, function(result) { //댓글추가함수(reply.js)
 
 			alert(result); //정상적으로 등록 성공시 경고창발생
 			modal.find("input").val(""); //등록한 내용으로 다시 등록할 수 없도록 입력항목 비워주기
@@ -448,7 +480,7 @@
 
 	});
 
-	//댓글 수정 버튼 클릭 시
+	// 3.1.3 댓글 수정 버튼 클릭 시
 	modalModBtn.on("click", function(e) {
 		
 		var originalReplyer = modalInputReplyer.val(); //댓글작성자
@@ -488,7 +520,7 @@
 
 	});
 
-	//댓글 삭제 버튼 클릭 시
+	// 3.1.4 댓글 삭제 버튼 클릭 시
 	modalRemoveBtn.on("click", function(e) {
 
 		var rno = modal.data("rno");

@@ -14,6 +14,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -35,7 +37,12 @@ import net.coobird.thumbnailator.Thumbnailator;
 
 @Controller
 @Log4j
+@PropertySource(value = {"classpath:/application.properties"})
 public class UploadController { //첨부파일 (엑셀/회원가입 프로필사진 시 테이블 생성 후 사용하기)
+	
+	@Value("${file.path}")
+	private String uploadFolder;
+	
 	
 	@GetMapping("/uploadAjax")
 	public void uploadAjax() {
@@ -49,7 +56,7 @@ public class UploadController { //첨부파일 (엑셀/회원가입 프로필사
 		
 		List<AttachFileDTO> list = new ArrayList<>();
 		String uploadFolderPath = getFolder();
-		String uploadFolder = "C:\\upload";
+
 		
 		
 		//파일 생성
@@ -142,7 +149,7 @@ public class UploadController { //첨부파일 (엑셀/회원가입 프로필사
 	public ResponseEntity<Resource> downloadFile(String fileName) {	//일반파일 다운로드(한글,엑셀,pdf..등)
 		log.info("download file : "  + fileName);
 		
-		Resource resource = new FileSystemResource("C:\\upload\\"+fileName);
+		Resource resource = new FileSystemResource("c:\\upload\\"+fileName); //이거 다시 수정 필요.
 		
 		log.info("resource : " + resource);
 		

@@ -38,7 +38,7 @@ public class CustomLoginSuccessHandler implements AuthenticationSuccessHandler {
 		
 		
 		if(roleNames.contains("ROLE_MEMBER")) { //회원 권한 (일반 사용자)라면 - 로그인하지 않은 사용자는 취급 x login페이지로
-			response.sendRedirect("/groupware/main"); //로그인 후 메인화면 + 회원 페이지(마이페이지) 그 외 다른곳도 접근 가능 
+			response.sendRedirect("/groupware/main"); //로그인 후 메인화면으로 이동
 			return;
 		}
 		

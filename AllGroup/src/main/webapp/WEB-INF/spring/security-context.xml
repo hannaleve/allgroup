@@ -5,70 +5,76 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-
+<!-- 접근 거부됐을 시 보이는 메세지처리  -->
 	<bean id="customAccessDenied"
 		class="com.groupware.security.CustomAccessDeniedHandler"></bean>
+<!-- 로그인 성공 이후에 특정한 동작을 제어 -->
 	<bean id="customLoginSuccess"
 		class="com.groupware.security.CustomLoginSuccessHandler"></bean>
+<!-- 로그아웃 이후 특정한 동작을 제어 -->
+	<bean id="logoutSuccessHandler"
+		class="com.groupware.security.CustomLogoutSuccessHandler"></bean>
+<!-- 패스워드 암호화 -->
 	<bean id="bcryptPasswordEncoder"
 		class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder" />
-
+<!-- db에서 유저정보 읽고 리턴 -->
 	<bean id="customUserDetailsService"
 		class="com.groupware.security.CustomUserDetailsService"></bean>
 
-	<bean id="logoutSuccessHandler"
-		class="com.groupware.security.CustomLogoutSuccessHandler"></bean>
 
 	<security:http>
 
+
 		<security:intercept-url
-			pattern="/customlogin" access="permitAll" />
+			pattern="/customlogin" access="permitAll" /> <!-- 로그인페이지 -->
 			<security:intercept-url
-			pattern="/logout" access="permitAll" />
+			pattern="/customLogout" access="permitAll" />  <!-- 로그아웃페이지 -->
 			
-			
+<!-- 권한 부여 -->
 		<security:intercept-url
-			pattern="/member/**" access="permitAll" /> <!-- 회원가입할 시 다 들어올 수 있음 -->
+			pattern="/member/**" access="permitAll" /> <!-- 회원가입 하는 페이지로 모든 사용자가 접근 가능 -->
 			<security:intercept-url
 			pattern="/**" access="permitAll" />
 
 		<security:intercept-url
-			pattern="/groupware/member" access="hasRole('ROLE_MEMBER')" /> <!-- 회원페이지인경우(마이페이지) -->
-
+			pattern="/groupware/main" access="hasRole('ROLE_MEMBER')" /> <!-- 로그인한 사용자만 접근가능 (메인화면)  -->
+        <security:intercept-url
+			pattern="/groupware/mypage" access="hasRole('ROLE_MEMBER')" /> <!-- 로그인한 사용자만 접근가능 (마이페이지)  -->
 		<security:intercept-url
-			pattern="/groupware/admin" access="hasRole('ROLE_ADMIN')" />
+			pattern="/groupware/admin" access="hasRole('ROLE_ADMIN')" /> <!-- 관리자만 접근가능  -->
 
+
+<!-- 접근 거부됐을 시 보이는 메세지처리  -->
 		<security:access-denied-handler
 			ref="customAccessDenied" />
-
+			
+<!-- 로그인 성공 이후에 특정한 동작을 제어 -->
 		<security:form-login login-page="/customLogin"
 			authentication-success-handler-ref="customLoginSuccess" />
 
-		<!-- <security:form-login login-page="/customLogin" /> -->
-
-		<!-- <security:csrf disabled="true"/> -->
-
-		<!-- <security:logout logout-url="/customLogout"
-			invalidate-session="true" />
- -->
+ 
+ <!-- jdbc를 이용하여 인증.인가 처리 -->
 		<security:remember-me
-			data-source-ref="dataSource" token-validity-seconds="604800" /> <!-- 일주일정도(자동로그인) -->
+			data-source-ref="dataSource" token-validity-seconds="604800" /> <!-- 자동로그인(토큰 유효시간 7일) -->
 
+<!-- 로그아웃 시 remember-me(자동로그인) +   was(tomcat)가 발행하는 쿠키까지 모두 삭제 -->
 		<security:logout logout-url="/customLogout" 
 			 invalidate-session="true" 
-			delete-cookies="remember-me,JSESSION_ID" /> <!-- 로그아웃시 자동로그인 + was(tomcat)가 발행하는 쿠키까지 모두 삭제 -->
+			delete-cookies="remember-me,JSESSION_ID" /> 
 
 
 	</security:http>
 
 
+
+
 	<security:authentication-manager>
 
 		<security:authentication-provider
-			user-service-ref="customUserDetailsService">
+			user-service-ref="customUserDetailsService"> <!-- db에서 유저정보 읽고 리턴 -->
 
 			<security:password-encoder
-				ref="bcryptPasswordEncoder" />
+				ref="bcryptPasswordEncoder" /> <!-- 패스워드 암호화 -->
 
 		</security:authentication-provider>
 
